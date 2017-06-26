@@ -3,7 +3,7 @@ XEeditor.tools.define({
 	events: {
 		iconClick: function(targetEditor, cbAppendToolContent) {
 			if(targetEditor.config.perms.upload) {
-				var cWindow = window.open(imageResizeURL.get('popup'), 'createImageResizerPopup', "width=850,height=930,directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no");
+				var cWindow = window.open(imageResizeURL.get('popup'), 'createImageResizerPopup', "width=850,height=970,directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no");
 
 				$(cWindow).on('load', function() {
 					cWindow.targetEditor = targetEditor;

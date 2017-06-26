@@ -16,15 +16,11 @@ class Plugin extends AbstractPlugin
      */
     public function boot()
     {
-        // implement code
-
         $this->route();
     }
 
     protected function route()
     {
-        // implement code
-
         Route::fixed(
             $this->getId(),
             function () {
@@ -46,12 +42,14 @@ class Plugin extends AbstractPlugin
                                 asset('assets/vendor/bootstrap/css/bootstrap.min.css'),
                                 $this->asset('assets/vendor/jquery-ui.css'),
                                 $this->asset('assets/vendor/jquery.Jcrop.css'),
+                                $this->asset('assets/vendor/cropper.min.css'),
                             ])->appendTo('head')->load();
 
                             XeFrontend::js([
                                 $this->asset('assets/vendor/load-image.all.min.js'),
                                 $this->asset('assets/vendor/jquery-ui.js'),
                                 $this->asset('assets/vendor/jquery.Jcrop.js'),
+                                $this->asset('assets/vendor/cropper.min.js'),
                             ])->appendTo('body')->load();
 
                             // output
@@ -78,13 +76,15 @@ class Plugin extends AbstractPlugin
                             XeFrontend::css([
                                 asset('assets/vendor/bootstrap/css/bootstrap.min.css'),
                                 $this->asset('assets/vendor/jquery-ui.css'),
-                                $this->asset('assets/vendor/jquery.Jcrop.css'),
+//                                $this->asset('assets/vendor/jquery.Jcrop.css'),
+                                $this->asset('assets/vendor/cropper.min.css'),
                             ])->appendTo('head')->load();
 
                             XeFrontend::js([
-                                $this->asset('assets/vendor/load-image.all.min.js'),
+//                                $this->asset('assets/vendor/load-image.all.min.js'),
                                 $this->asset('assets/vendor/jquery-ui.js'),
-                                $this->asset('assets/vendor/jquery.Jcrop.js'),
+//                                $this->asset('assets/vendor/jquery.Jcrop.js'),
+                                $this->asset('assets/vendor/cropper.min.js'),
                             ])->appendTo('body')->load();
 
                             // output
