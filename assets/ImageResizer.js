@@ -156,7 +156,7 @@ var ImageResizer = (function () {
 						var fileCount = parseInt(opener.$('.fileCount').text(), 10) + 1;
 
 						//file size
-						var fileTotalSize = parseFloat(opener.$(".currentFilesSize").text()) * 1024 * 1024 + fileSize;
+						var fileTotalSize = Utils.sizeFormatToBytes(opener.$(".currentFilesSize").text()) + fileSize;
 						var thumbImageUrl = (data.thumbnails) ? data.thumbnails[2].url : ''
 						var tmplImage = [
 							'<li>',
