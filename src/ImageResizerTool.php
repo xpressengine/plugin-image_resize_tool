@@ -13,8 +13,7 @@ class ImageResizerTool extends AbstractTool
         <script>
             (function() {
                 var _url = {
-                    popup: '".route('image_resize_tool::popup')."',      
-                    edit_popup: '".route('image_resize_tool::popup.edit')."'
+                    popup: '".route('image_resize_tool::popup')."'
                 };
             
                 window.imageResizeURL = {
@@ -26,7 +25,7 @@ class ImageResizerTool extends AbstractTool
         </script>
         ")->load();
         XeFrontend::js([
-            asset($this->getAssetsPath() . '/ImageResizer.js'),
+            asset($this->getAssetsPath() . '/ImageResizerTool.js'),
         ])->load();
     }
 

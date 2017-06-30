@@ -41,54 +41,17 @@ class Plugin extends AbstractPlugin
                             XeFrontend::css([
                                 asset('assets/vendor/bootstrap/css/bootstrap.min.css'),
                                 $this->asset('assets/vendor/jquery-ui.css'),
-                                $this->asset('assets/vendor/jquery.Jcrop.css'),
                                 $this->asset('assets/vendor/cropper.min.css'),
                             ])->appendTo('head')->load();
 
                             XeFrontend::js([
-                                $this->asset('assets/vendor/load-image.all.min.js'),
                                 $this->asset('assets/vendor/jquery-ui.js'),
-                                $this->asset('assets/vendor/jquery.Jcrop.js'),
                                 $this->asset('assets/vendor/cropper.min.js'),
+                                $this->asset('assets/ImageResizer.js'),
                             ])->appendTo('body')->load();
 
                             // output
                             return XePresenter::make('image_resize_tool::views.popup');
-
-                        }
-                    ]
-                );
-
-                Route::get(
-                    '/popup/edit',
-                    [
-                        'as' => 'image_resize_tool::popup.edit',
-                        'uses' => function (Request $request) {
-
-                            $title = '이미지 리사이즈, 편집 에디터툴';
-
-                            // set browser title
-                            XeFrontend::title($title);
-
-                            //header, footer 제거
-                            \XeTheme::selectBlankTheme();
-
-                            XeFrontend::css([
-                                asset('assets/vendor/bootstrap/css/bootstrap.min.css'),
-                                $this->asset('assets/vendor/jquery-ui.css'),
-//                                $this->asset('assets/vendor/jquery.Jcrop.css'),
-                                $this->asset('assets/vendor/cropper.min.css'),
-                            ])->appendTo('head')->load();
-
-                            XeFrontend::js([
-//                                $this->asset('assets/vendor/load-image.all.min.js'),
-                                $this->asset('assets/vendor/jquery-ui.js'),
-//                                $this->asset('assets/vendor/jquery.Jcrop.js'),
-                                $this->asset('assets/vendor/cropper.min.js'),
-                            ])->appendTo('body')->load();
-
-                            // output
-                            return XePresenter::make('image_resize_tool::views.popup-edit');
 
                         }
                     ]
