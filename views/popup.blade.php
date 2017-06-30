@@ -41,15 +41,20 @@
             width: 0,
             height: 0
         };
+        var _mimeType = '';
 
         var _$cropper = null;
 
         var _resizeMode = false;
         var _cropMode = false;
 
+        var _thumbImageUrl = '';
+        var _id = '';
+
         return {
             init: function () {
                 _this = this;
+
                 this.cache();
                 this.bindEvents();
 
@@ -68,6 +73,8 @@
 
             },
             bindEvents: function () {
+                $(window).on('load', this.preventReloading);
+
                 this.$imageFile.on('change', this.changeFile);
                 this.$btnSelectImage.on('click', function () {
                     _this.$imageFile.trigger('click');
@@ -77,23 +84,225 @@
                 this.$btnCropImage.on('click', this.cropImage);
                 this.$btnResetImage.on('click', this.reset);
                 this.$btnClose.on('click', function () {
-                    //TODO::confirm
                     self.close();
                 });
+
+                this.$btnUpload.on('click', this.upload);
+                this.$btnAppendToEditor.on('click', this.appendToEditor);
+            },
+            appendToEditor: function () {
+                var imageHtml = [
+                    "<img ",
+                    "src='" + _thumbImageUrl + "' ",
+                    "class='" + self.targetEditor.config.names.file.image.class + "' ",
+                    "data-cke-attach='" + _id + "' ",
+                    self.targetEditor.config.names.file.image.identifier + "='" + _id,
+                    "' />"
+                ].join("");
+
+                self.appendToolContent(imageHtml);
+            },
+            preventReloading: function () {
+                if(!self.appendToolContent) {
+                    alert('팝업을 재실행 하세요.');
+                    self.close();
+                }
+            },
+            isValidUpload: function (blob) {
+                /**
+                 uploadInfo
+                 -uploadUrl: uploadUrl,
+                 -attachMaxSize: attachMaxSize,
+                 -fileMaxSize: fileMaxSize,
+                 -extensions: extensions,
+                 -$uploadArea: $uploadArea
+                 * */
+                var uploadInfo = self.uploadInfo;
+                var extensions = uploadInfo.extensions;
+                var currentFileSize = blob.size;
+                var attachFileSize = parseFloat(uploadInfo.$uploadArea.find('.currentFilesSize').text()) * 1024 * 1024 + currentFileSize;
+                var attachMaxSize = uploadInfo.attachMaxSize * 1024 * 1024;
+                var uploadFileName = _this.$imageFile[0].files[0].name;
+                var extValid = false;
+
+                for (var i = 0; i < extensions.length; i++) {
+                    var sCurExtension = extensions[i];
+
+                    if (sCurExtension === '*') {
+                        extValid = true;
+                        break;
+                    } else if (uploadFileName.substr(uploadFileName.length - sCurExtension.length, sCurExtension.length).toLowerCase() === sCurExtension.toLowerCase()) {
+                        extValid = true;
+                        break;
+                    }
+                }
+
+
+
+                if(!extValid) {
+                    alert('확장자 ' + uploadFileName.split('.').pop() + '는 업로드가 불가합니다.');
+
+                } else if(currentFileSize > uploadInfo.fileMaxSize * 1024 * 1024) {
+                    alert('파일 업로드 파일 크기 제한 [' + Utils.formatSizeUnits(uploadInfo.fileMaxSize * 1024 * 1024) + ']');
+
+                    return false;
+                } else if(attachFileSize > attachMaxSize * 1024 * 1024) {
+                    alert('파일 업로드는 최대 ' + Utils.formatSizeUnits(uploadInfo.attachMaxSize * 1024 * 1024) + '까지만 가능합니다.');
+
+                    return false;
+                }
+
+                return true;
+            },
+            upload: function () {
+                var dataUrl = $('#targetCanvas')[0].toDataURL(_mimeType);
+                var blob = _this.dataURItoBlob(dataUrl);
+
+                if(_this.isValidUpload(blob)) {
+                    var formData = new FormData();
+
+                    blob.name = _fileName;
+                    formData.append("file", blob, _fileName);
+
+                    _this.setButtonDisabledStatus({
+                        select: true,
+                        toggleResize: true,
+                        toggleCrop: true,
+                        crop: true,
+                        close: true,
+                        reset: true,
+                        upload: true,
+                        append: true
+                    });
+
+                    XE.ajax({
+                        url: self.uploadInfo.uploadUrl,
+                        type: 'POST',
+                        processData: false,
+                        contentType: false,
+                        data: formData,
+                        success: function (data) {
+                            var file = data.file
+                                , fileName = file.clientname
+                                , fileSize = file.size
+                                , id = file.id;
+
+                            if(opener.$('.file-view').hasClass('xe-hidden')) {
+                                opener.$('.file-view').removeClass('xe-hidden');
+                            }
+
+                            var fileCount = parseInt(opener.$('.fileCount').text(), 10) + 1;
+
+                            //file size
+                            var fileTotalSize = parseFloat(opener.$(".currentFilesSize").text()) * 1024 * 1024 + fileSize;
+                            var thumbImageUrl = (data.thumbnails) ? data.thumbnails[2].url : ''
+                            var tmplImage = [
+                                '<li>',
+                                '   <img src="' + thumbImageUrl + '" alt="' + fileName + '">',
+                                '   <button type="button" class="btn-insert btnAddImage" data-type="image" data-src="' + thumbImageUrl + '" data-id="' + file.id + '"><i class="xi-arrow-up"></i><span class="xe-sr-only">' + XE.Lang.trans("ckeditor::addContentToBody") + '</span></button>',     //본문에 넣기
+                                '   <button type="button" class="btn-delete btnDelFile" data-id="' + file.id + '" data-size="' + file.size + '"><i class="xi-close-thin"></i><span class="xe-sr-only">' + XE.Lang.trans("ckeditor::deleteAttachment") + '</span></button>',    //첨부삭제
+                                '   <input type="hidden" name="' + self.targetEditor.config.names.file.input + '[]" value="' + id + '" />',
+                                '</li>'
+                            ].join("\n");
+
+                            opener.$('.thumbnail-list').append(tmplImage);
+
+                            opener.$(".file-view").removeClass("xe-hidden");
+
+                            //첨부파일 갯수 표시
+                            opener.$(".fileCount").text(fileCount);
+
+                            //첨부파일 용량 표시
+                            opener.$(".currentFilesSize").text(Utils.formatSizeUnits(fileTotalSize));
+
+                            _thumbImageUrl = thumbImageUrl;
+                            _id = id;
+
+                            //에디터에 넣기 활성화
+                            _this.setButtonDisabledStatus({
+                                select: false,
+                                toggleResize: false,
+                                toggleCrop: false,
+                                crop: true,
+                                close: false,
+                                reset: false,
+                                upload: false,
+                                append: false
+                            });
+                        },
+                        error: function () {
+                            _this.setButtonDisabledStatus({
+                                select: false,
+                                toggleResize: false,
+                                toggleCrop: false,
+                                crop: true,
+                                close: false,
+                                reset: false,
+                                upload: false,
+                                append: true
+                            });
+                        }
+                    });
+                }
+            },
+            dataURItoBlob: function(dataURI) {
+                var byteString = atob(dataURI.split(',')[1]);
+                var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+
+                var ab = new ArrayBuffer(byteString.length);
+                var ia = new Uint8Array(ab);
+                for (var i = 0; i < byteString.length; i++)
+                {
+                    ia[i] = byteString.charCodeAt(i);
+                }
+
+                var bb = new Blob([ab], { "type": mimeString });
+                return bb;
             },
             cropImage: function () {
-                var cropData = _$cropper.cropper('getCropBoxData');
 
-                console.log(cropData);
-                /**
-                 left: 257.7337031900139
-                 top: 71
-                 width: 216.53259361997226
-                 height: 666
-                 * */
+                var dataURL = _$cropper.cropper('getCroppedCanvas').toDataURL();
+                var img = new Image();
 
-                //TODO:: image to canvas
-                //$('.cropper-canvas > img')
+                img.src = dataURL;
+                img.onload = function () {
+                    var imgWidth = this.width;
+                    var imgHeight = this.height;
+
+                    _$cropper.cropper('destroy');
+                    _cropMode = false;
+
+                    $('.image_size').text(imgWidth + ' x ' + imgHeight);
+
+                    var $image = $('<img id="targetImage" src="' + dataURL + '" />').css({
+                        width: imgWidth,
+                        height: imgHeight
+                    });
+
+                    $('#imageWrapper').html($image);
+
+                    var canvas = $('<canvas id="targetCanvas" />')[0];
+                    var ctx = canvas.getContext('2d');
+                    canvas.width = imgWidth;
+                    canvas.height = imgHeight;
+
+                    ctx.drawImage($('#targetImage')[0], 0, 0, imgWidth, imgHeight);
+
+                    $('#imageWrapper').html(canvas);
+
+                    _this.setButtonDisabledStatus({
+                        select: false,
+                        toggleResize: false,
+                        toggleCrop: false,
+                        crop: true,
+                        close: false,
+                        reset: false,
+                        upload: false,
+                        append: true
+                    });
+
+                }
+
             },
             setCropMode: function () {
                 if(_cropMode) {
@@ -153,11 +362,47 @@
             },
             reset: function () {
                 if(_result) {
-                    var $image = $('<img src="' + _result + '">').css({width: _size.width, height: _size.height});
+
                     _resizeMode = false;
                     _cropMode = false;
 
-                    $('#imageWrapper').html($image);
+                    var img = new Image();
+
+                    img.src = _result;
+                    img.onload = function () {
+                        var imgWidth = _size.width;
+                        var imgHeight = _size.height;
+
+                        $('.image_size').text(imgWidth + ' x ' + imgHeight);
+
+                        var $image = $('<img id="targetImage" src="' + _result + '" />').css({
+                            width: imgWidth,
+                            height: imgHeight
+                        });
+
+                        $('#imageWrapper').html($image);
+
+                        var canvas = $('<canvas id="targetCanvas" />')[0];
+                        var ctx = canvas.getContext('2d');
+                        canvas.width = imgWidth;
+                        canvas.height = imgHeight;
+
+                        ctx.drawImage($('#targetImage')[0], 0, 0, imgWidth, imgHeight);
+
+                        $('#imageWrapper').html(canvas);
+
+                        _this.setButtonDisabledStatus({
+                            select: false,
+                            toggleResize: false,
+                            toggleCrop: false,
+                            crop: true,
+                            close: false,
+                            reset: false,
+                            upload: false,
+                            append: true
+                        });
+
+                    }
                 }
             },
             setResizeMode: function () {
@@ -276,6 +521,9 @@
 
                         }
                     }
+
+                    _mimeType = target.files[0].type;
+                    _fileName = target.files[0].name;
 
                     reader.readAsDataURL(target.files[0]);
                 }
