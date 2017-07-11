@@ -14,6 +14,7 @@ var ImageResizer = (function () {
 
 	var _thumbImageUrl = '';
 	var _id = '';
+	var _file;
 
 	return {
 		init: function () {
@@ -86,7 +87,8 @@ var ImageResizer = (function () {
 			var currentFileSize = blob.size;
 			var attachFileSize = parseFloat(uploadInfo.$uploadArea.find('.currentFilesSize').text()) * 1024 * 1024 + currentFileSize;
 			var attachMaxSize = uploadInfo.attachMaxSize * 1024 * 1024;
-			var uploadFileName = _this.$imageFile[0].files[0].name;
+			//var uploadFileName = _this.$imageFile[0].files[0].name;
+			var uploadFileName = _file.name;
 			var extValid = false;
 
 			for (var i = 0; i < extensions.length; i++) {
@@ -440,6 +442,7 @@ var ImageResizer = (function () {
 			if(file) {
 				var reader = new FileReader();
 
+				_file = target.files[0];
 				reader.onload = function (e) {
 					var result = e.target.result;
 					var img = new Image();
