@@ -60,7 +60,7 @@ var ImageResizer = (function () {
 				"<img ",
 				"src='" + _thumbImageUrl + "' ",
 				"class='" + self.targetEditor.config.names.file.image.class + "' ",
-				"data-cke-attach='" + _id + "' ",
+				"xe-file-id='" + _id + "' ",
 				self.targetEditor.config.names.file.image.identifier + "='" + _id,
 				"' />"
 			].join("");
