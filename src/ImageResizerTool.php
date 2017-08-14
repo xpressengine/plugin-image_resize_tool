@@ -9,13 +9,13 @@ class ImageResizerTool extends AbstractTool
 {
     public function initAssets()
     {
-        XeFrontend::html('google_map_tool.load_url')->content("
+        XeFrontend::html('image_resize_tool.load_url')->content("
         <script>
             (function() {
                 var _url = {
                     popup: '".route('image_resize_tool::popup')."'
                 };
-            
+                
                 window.imageResizeURL = {
                     get: function (type) {
                         return _url[type];                 
